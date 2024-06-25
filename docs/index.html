@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>insta-book</title>
+<title>Detección de cuentas falsas</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -19,40 +19,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -106,7 +72,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">insta-book</span>
+    <span class="navbar-title">Detección de cuentas falsas</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -117,11 +83,39 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
     <a class="nav-link active" href="./index.html" rel="" target="" aria-current="page">
- <span class="menu-text">Home</span></a>
+ <span class="menu-text">Intro</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./about.html" rel="" target="">
- <span class="menu-text">About</span></a>
+    <a class="nav-link" href="./analisis_exploratorio.html" rel="" target="">
+ <span class="menu-text">Análisis Exploratorio</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./visualizacion.html" rel="" target="">
+ <span class="menu-text">Visualización</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./reglas_asociacion.html" rel="" target="">
+ <span class="menu-text">Reglas de asociación</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./FCA.html" rel="" target="">
+ <span class="menu-text">FCA</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./regresion.html" rel="" target="">
+ <span class="menu-text">Regresión</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./series_temporales.html" rel="" target="">
+ <span class="menu-text">Series Temporales</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./summary.html" rel="" target="">
+ <span class="menu-text">Conclusión</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./references.html" rel="" target="">
+ <span class="menu-text">References</span></a>
   </li>  
 </ul>
             <div class="quarto-navbar-tools ms-auto">
@@ -135,38 +129,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introducción" id="toc-introducción" class="nav-link active" data-scroll-target="#introducción">Introducción</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">insta-book</h1>
-</div>
 
 
-
-<div class="quarto-title-meta">
-
-    
-  
-    
-  </div>
-  
-
-</header>
-
-<p>This is a Quarto website.</p>
-<p>To learn more about Quarto websites visit <a href="https://quarto.org/docs/websites" class="uri">https://quarto.org/docs/websites</a>.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">+</span> <span class="dv">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 2</code></pre>
-</div>
-</div>
+<section id="introducción" class="level1">
+<h1>Introducción</h1>
+<p>Este proyecto alberga una recopilación de los contenidos aprendidos en la asignatura Laboratorio de Computación Científica impartida en el grado de Ingeniería Informática.</p>
+<p>Para ello, se nos ha proporcionado un conjunto de datos sobre cuentas falsas de Instagram, del cual deberemos extraer conocimiento a través de las distintas técnicas aprendidas en la asignatura.</p>
+<p>Este <em>dataset</em> resulta especialmente interesante, pues vivimos unos tiempos donde abundan las <em>fake news,</em> estafas online y donde nada es lo que parece. Por todo esto, necesitamos desarrollar herramientas que nos permitan sacar información en claro dentro de la inmensa red que constituye internet.</p>
+<p>A pesar de parecer una tarea compleja y abrumadora, veremos que hay algoritmos y técnicas que se pueden aplicar de forma sencilla y que nos aportarán información muy valiosa.</p>
+<p>Así que, sin más dilación, podemos ponernos manos a la obra.</p>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

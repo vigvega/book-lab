@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Detección de cuentas falsas – regresion</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Detección de cuentas falsas</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html" rel="" target="">
+ <span class="menu-text">Intro</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./analisis_exploratorio.html" rel="" target="">
+ <span class="menu-text">Análisis Exploratorio</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./visualizacion.html" rel="" target="">
+ <span class="menu-text">Visualización</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./reglas_asociacion.html" rel="" target="">
+ <span class="menu-text">Reglas de asociación</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./FCA.html" rel="" target="">
+ <span class="menu-text">FCA</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./regresion.html" rel="" target="" aria-current="page">
+ <span class="menu-text">Regresión</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./series_temporales.html" rel="" target="">
+ <span class="menu-text">Series Temporales</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./summary.html" rel="" target="">
+ <span class="menu-text">Conclusión</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./references.html" rel="" target="">
+ <span class="menu-text">References</span></a>
+  </li>  
+</ul>
+            <div class="quarto-navbar-tools ms-auto">
+</div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#regresión" id="toc-regresión" class="nav-link active" data-scroll-target="#regresión">Regresión</a>
+  <ul class="collapse">
+  <li><a href="#buscando-relaciones" id="toc-buscando-relaciones" class="nav-link" data-scroll-target="#buscando-relaciones">Buscando relaciones</a></li>
+  <li><a href="#un-primer-modelo-simple" id="toc-un-primer-modelo-simple" class="nav-link" data-scroll-target="#un-primer-modelo-simple">Un primer modelo simple</a></li>
+  <li><a href="#un-modelo-genérico" id="toc-un-modelo-genérico" class="nav-link" data-scroll-target="#un-modelo-genérico">Un modelo genérico</a></li>
+  <li><a href="#mejorando-el-modelo" id="toc-mejorando-el-modelo" class="nav-link" data-scroll-target="#mejorando-el-modelo">Mejorando el modelo</a></li>
+  <li><a href="#predicciones" id="toc-predicciones" class="nav-link" data-scroll-target="#predicciones">Predicciones</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+
+<section id="regresión" class="level1">
+<h1>Regresión</h1>
+<p>La siguiente técnica que vamos a probar sobre nuestro conjunto de datos es la de regresión. Consiste en estudiar la relación entre una variable dependiente y una o varias variables explicativas, de modo que después se puedan hacer predicciones en base a estos resultados.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data_reg <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"train.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">attach</span>(data_reg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="buscando-relaciones" class="level2">
+<h2 class="anchored" data-anchor-id="buscando-relaciones">Buscando relaciones</h2>
+<p>Para empezar, vamos a intentar buscar relaciones entre variables, para ver qué atributos podemos añadir al modelo. Para ello, vamos a quitar en principio las variables binarias para simplificar las vistas.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data_reg2 <span class="ot">&lt;-</span> data_reg</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>data_reg2<span class="sc">$</span>name..username <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>data_reg2<span class="sc">$</span>profile.pic <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>data_reg2<span class="sc">$</span>external.URL <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>data_reg2<span class="sc">$</span>private <span class="ot">&lt;-</span> <span class="cn">NULL</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># matriz de diagramas de dispersión</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">pairs</span>(data_reg2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="regresion_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>En este diagrama podemos ver ciertas relaciones. Por ejemplo, se observa cierta linealidad entre <em>nums.length.username</em> y <em>nums.length.fullname</em>. Sin embargo, no se aprecian relaciones completamente concluyentes para ningún atributo. Esto es posible que se deba a que haya muchos <em>outliers</em> o que simplemente no tenga relación entre si, lo cual comprobaremos una vez hayamos construido los modelos.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># matriz de correlación</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(data_reg2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                     nums.length.username fullname.words nums.length.fullname
+nums.length.username           1.00000000    -0.22547213           0.40856654
+fullname.words                -0.22547213     1.00000000          -0.09434799
+nums.length.fullname           0.40856654    -0.09434799           1.00000000
+description.length            -0.32117027     0.27252216          -0.11752105
+X.posts                       -0.15744211     0.07335018          -0.05771550
+X.followers                   -0.06278509     0.03322460          -0.02703471
+X.follows                     -0.17241327     0.09485496          -0.06797109
+fake                           0.58768653    -0.29879258           0.24678210
+                     description.length     X.posts  X.followers   X.follows
+nums.length.username       -0.321170271 -0.15744211 -0.062785090 -0.17241327
+fullname.words              0.272522165  0.07335018  0.033224604  0.09485496
+nums.length.fullname       -0.117521050 -0.05771550 -0.027034712 -0.06797109
+description.length          1.000000000  0.14482370  0.005929455  0.22656142
+X.posts                     0.144823702  1.00000000  0.321385480  0.09822504
+X.followers                 0.005929455  0.32138548  1.000000000 -0.01106599
+X.follows                   0.226561422  0.09822504 -0.011065994  1.00000000
+fake                       -0.460824593 -0.24535515 -0.093688783 -0.22483522
+                            fake
+nums.length.username  0.58768653
+fullname.words       -0.29879258
+nums.length.fullname  0.24678210
+description.length   -0.46082459
+X.posts              -0.24535515
+X.followers          -0.09368878
+X.follows            -0.22483522
+fake                  1.00000000</code></pre>
+</div>
+</div>
+<p>Aquí vemos la matriz de correlación, que indica cómo de relacionado está cada atributo con todos los demás. Los resultados tampoco son demasiado buenos, pues, aunque hay atributos que muestran cierta relación, no son de manera demasiado significativa en general.</p>
+</section>
+<section id="un-primer-modelo-simple" class="level2">
+<h2 class="anchored" data-anchor-id="un-primer-modelo-simple">Un primer modelo simple</h2>
+<p>Para empezar, vamos a crear un modelo para poder predecir la relación entre el número de seguidores y seguidos.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generamos el modelo</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>( <span class="at">formula =</span> X.followers <span class="sc">~</span> X.follows ,  <span class="at">data =</span> data_reg)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = X.followers ~ X.follows, data = data_reg)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+  -90885   -90167   -87723   -82523 15248322 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)  
+(Intercept) 90884.99   43393.91   2.094   0.0367 *
+X.follows     -10.97      41.38  -0.265   0.7910  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 910900 on 574 degrees of freedom
+Multiple R-squared:  0.0001225, Adjusted R-squared:  -0.001619 
+F-statistic: 0.0703 on 1 and 574 DF,  p-value: 0.791</code></pre>
+</div>
+</div>
+<p>Lo primero que llama la atención es un <em>p-value</em> excesivamente alto, además de que se nos indica que no hay relación entre el número de seguidores y seguidos.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Lo visualizamos</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(X.follows, X.followers)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="regresion_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Como podemos ver, los puntos con una gran cantidad de seguidores distorsionan los resultados. Vamos a eliminarlos, pues.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>data2 <span class="ot">&lt;-</span> data_reg <span class="sc">%&gt;%</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(X.followers<span class="sc">&lt;</span><span class="dv">4000</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>model2 <span class="ot">&lt;-</span> <span class="fu">lm</span>( <span class="at">formula =</span> X.followers <span class="sc">~</span> X.follows ,  <span class="at">data =</span> data2)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = X.followers ~ X.follows, data = data2)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-1359.6  -233.1  -191.8     4.2  3473.6 
+
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept) 233.43628   28.07136   8.316 7.81e-16 ***
+X.follows     0.33455    0.03022  11.071  &lt; 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 560.5 on 527 degrees of freedom
+Multiple R-squared:  0.1887,    Adjusted R-squared:  0.1871 
+F-statistic: 122.6 on 1 and 527 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Lo visualizamos</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(data2<span class="sc">$</span>X.follows, data2<span class="sc">$</span>X.followers)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="regresion_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Estos resultados parecen más fiables. Para asegurarnos de ellos, vamos a estudiar algunos valores del modelo.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="regresion_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="regresion_files/figure-html/unnamed-chunk-10-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="regresion_files/figure-html/unnamed-chunk-10-3.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="regresion_files/figure-html/unnamed-chunk-10-4.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Para la primera y la tercera gráfica, donde vemos <em>Residuals vs.&nbsp;Fitted y Scale-Location</em>, respectivamente, vemos que se distribuyen los puntos de forma algo aleatoria, lo cual es un signo positivo de que nuestro modelo hace bien su trabajo.</p>
+<p>La segunda, <em>Normal Q-Q,</em> parece desviarse de lo esperado para los últimos valores.</p>
+<p>Por último, en <em>Residuals vs.&nbsp;Leverage</em>, se nos informa de los puntos que tienen mayor influencia en el modelo. Además, se ve que sigue habiendo puntos que no son muestras fiables para el modelo, como el 89 y el 104.</p>
+</section>
+<section id="un-modelo-genérico" class="level2">
+<h2 class="anchored" data-anchor-id="un-modelo-genérico">Un modelo genérico</h2>
+<p>El siguiente modelo que voy a crear, va a ser entre el atributo <em>fake</em> y todos los demás, pues me interesa ver cuáles tienen más influencia en el modelo.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>model3 <span class="ot">&lt;-</span> <span class="fu">lm</span>( <span class="at">formula =</span> fake <span class="sc">~</span> .,  <span class="at">data =</span> data_reg ) </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = fake ~ ., data = data_reg)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.73096 -0.23729 -0.06653  0.24048  1.01052 
+
+Coefficients:
+                       Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)           7.931e-01  3.798e-02  20.880  &lt; 2e-16 ***
+profile.pic          -4.380e-01  3.345e-02 -13.094  &lt; 2e-16 ***
+nums.length.username  8.062e-01  7.522e-02  10.718  &lt; 2e-16 ***
+fullname.words       -3.354e-02  1.333e-02  -2.516 0.012142 *  
+nums.length.fullname -2.775e-02  1.212e-01  -0.229 0.818988    
+name..username        2.241e-01  7.641e-02   2.933 0.003498 ** 
+description.length   -1.510e-03  4.342e-04  -3.478 0.000544 ***
+external.URL         -1.542e-01  4.800e-02  -3.213 0.001390 ** 
+private              -9.459e-03  2.843e-02  -0.333 0.739459    
+X.posts              -9.094e-05  3.570e-05  -2.547 0.011120 *  
+X.followers          -9.960e-09  1.539e-08  -0.647 0.517743    
+X.follows            -1.850e-05  1.499e-05  -1.235 0.217530    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.3166 on 564 degrees of freedom
+Multiple R-squared:  0.6074,    Adjusted R-squared:  0.5998 
+F-statistic: 79.33 on 11 and 564 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<p>Vemos que las que más información aportan son <em>profile.pic, nums.length.username</em> y <em>description.length,</em> seguidas de <em>name..username</em> y <em>external.URL.</em></p>
+<p>Vamos a crear un segundo modelo solo con estas variables.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>model4 <span class="ot">&lt;-</span> <span class="fu">lm</span>( <span class="at">formula =</span> fake <span class="sc">~</span> profile.pic <span class="sc">+</span> nums.length.username <span class="sc">+</span> description.length <span class="sc">+</span> name..username <span class="sc">+</span> external.URL,  <span class="at">data =</span> data_reg) </span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model4)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = fake ~ profile.pic + nums.length.username + description.length + 
+    name..username + external.URL, data = data_reg)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.71113 -0.24453 -0.07143  0.24282  0.98317 
+
+Coefficients:
+                       Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)           0.7354681  0.0316443  23.242  &lt; 2e-16 ***
+profile.pic          -0.4596554  0.0328023 -14.013  &lt; 2e-16 ***
+nums.length.username  0.8445023  0.0687052  12.292  &lt; 2e-16 ***
+description.length   -0.0017381  0.0004285  -4.056 5.68e-05 ***
+name..username        0.2314540  0.0733411   3.156 0.001685 ** 
+external.URL         -0.1731966  0.0477099  -3.630 0.000309 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.3196 on 570 degrees of freedom
+Multiple R-squared:  0.5956,    Adjusted R-squared:  0.592 
+F-statistic: 167.9 on 5 and 570 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<p>Vemos que tiene un p-value bajo, pero el valor de <em>R-square</em> parece no ser demasiado alto. De todos modos, vamos a visualizar más información de este modelo para determinar su utilidad.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model4)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="regresion_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="regresion_files/figure-html/unnamed-chunk-13-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="regresion_files/figure-html/unnamed-chunk-13-3.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="regresion_files/figure-html/unnamed-chunk-13-4.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Para la primera y la tercera gráfica, no encontramos buenos resultados, pues lo ideal sería que los residuos se distribuyesen de forma aleatoria y en este caso encontramos una clara linealidad en ellos.</p>
+<p>La segunda parece comportarse de forma esperada, pues vemos que los errores se distribuyen de forma normal.</p>
+<p>Por último, en <em>Residuals vs.&nbsp;Leverage</em>, se observa que hay algunos con el 415 que podrían ser eliminados, pues se desvía demasiado de los demás puntos.</p>
+</section>
+<section id="mejorando-el-modelo" class="level2">
+<h2 class="anchored" data-anchor-id="mejorando-el-modelo">Mejorando el modelo</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>model4_upd <span class="ot">&lt;-</span> <span class="fu">update</span>(model4, fake <span class="sc">~</span> . <span class="sc">+</span> <span class="fu">I</span>(description.length<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> <span class="fu">I</span>(nums.length.username<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model4_upd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = fake ~ profile.pic + nums.length.username + description.length + 
+    name..username + external.URL + I(description.length^2) + 
+    I(nums.length.username^2), data = data_reg)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.66881 -0.20550 -0.05292  0.22207  0.93695 
+
+Coefficients:
+                            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)                7.141e-01  3.208e-02  22.260  &lt; 2e-16 ***
+profile.pic               -3.995e-01  3.226e-02 -12.383  &lt; 2e-16 ***
+nums.length.username       1.394e+00  1.600e-01   8.717  &lt; 2e-16 ***
+description.length        -8.163e-03  1.121e-03  -7.282 1.10e-12 ***
+name..username             2.158e-01  7.014e-02   3.076 0.002196 ** 
+external.URL              -1.581e-01  4.559e-02  -3.467 0.000565 ***
+I(description.length^2)    5.378e-05  8.612e-06   6.245 8.30e-10 ***
+I(nums.length.username^2) -9.728e-01  2.341e-01  -4.156 3.74e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.3048 on 568 degrees of freedom
+Multiple R-squared:  0.6335,    Adjusted R-squared:  0.629 
+F-statistic: 140.3 on 7 and 568 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<p>Hemos conseguido subir ligeramente el valor de <em>R-square</em>, lo que significa que este modelo es algo mejor que el original.</p>
+</section>
+<section id="predicciones" class="level2">
+<h2 class="anchored" data-anchor-id="predicciones">Predicciones</h2>
+<p>Para finalizar, vamos a tomar el <em>testing set</em> para intentar predecir si una cuenta es falsa o no en función del último modelo que hemos obtenido.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>test <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"test.csv"</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Predicción</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>probabilidades <span class="ot">&lt;-</span> <span class="fu">predict</span>(model4_upd, test)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Las probabilidades las transformo a binarias</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>predicciones_binarias <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(probabilidades <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparamos con la predicción el valor real</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>resultados <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">prediccion=</span>predicciones_binarias, <span class="at">real=</span>test<span class="sc">$</span>fake)</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(resultados, <span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   prediccion real
+1           1    0
+2           0    0
+3           0    0
+4           0    0
+5           0    0
+6           0    0
+7           0    0
+8           0    0
+9           0    0
+10          0    0</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Vemos cuántas de las predicciones coinciden con lo esperado</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>porcentaje_aciertos <span class="ot">&lt;-</span> <span class="fu">sum</span>(predicciones_binarias<span class="sc">==</span>test<span class="sc">$</span>fake)<span class="sc">/</span><span class="fu">length</span>(test<span class="sc">$</span>fake)<span class="sc">*</span><span class="dv">100</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>porcentaje_aciertos</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 89.16667</code></pre>
+</div>
+</div>
+<p>Como podemos ver, hemos obtenido un modelo que acierta casi el 90% de sus predicciones. De estos resultados concluimos que en este apartado hemos aprendido un método muy sencillo pero útil con el que se puede conseguir, de forma casi instantánea, una respuesta sobre si una cuenta de Instagram es falsa o no.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

@@ -1,0 +1,7 @@
+# Conclusión
+
+Hemos visto muchos métodos para extraer conocimiento en cada uno de los capítulos, pero como consideración final hay que decir que esto es tan solo una pequeña parte dentro de una rama de estudio mucho más amplia y que, como queda evidenciado en cada capítulo, de gran utilidad e interés.
+
+Es importante entender que cada uno de estos métodos tienen unas características únicas y que, dependiendo de los datos que tengamos, habrá unos más útiles que otros. En el caso de las cuentas de Instagram, parece que el uso de reglas de asociación y visualización han sido los que más información nos han permitido extraer. Aunque es posible que alguien con una visión más exacta haya podido extraer conocimiento con otras técnicas que, a simple vista, no pareciesen adecuadas.
+
+Para ahondar más en esta materia, sería interesante tomar datos de distintos ámbitos y características, para estudiar las necesidades de cada uno de ellos. Por ejemplo, puede ser interesante tomar un dataset con datos médicos o de salud para construir un motor de diagnóstico o tomar registros de temperaturas para realizar predicciones sobre el cambio climático, ya que no hemos tenido oportunidad de exprimir el potencial de series temporales. Nos quedan infinitud de opciones por explorar.

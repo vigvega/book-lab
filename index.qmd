@@ -1,11 +1,11 @@
----
-title: "insta-book"
----
+# Introducción
 
-This is a Quarto website.
+Este proyecto alberga una recopilación de los contenidos aprendidos en la asignatura Laboratorio de Computación Científica impartida en el grado de Ingeniería Informática.
 
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+Para ello, se nos ha proporcionado un conjunto de datos sobre cuentas falsas de Instagram, del cual deberemos extraer conocimiento a través de las distintas técnicas aprendidas en la asignatura.
 
-```{r}
-1 + 1
-```
+Este *dataset* resulta especialmente interesante, pues vivimos unos tiempos donde abundan las *fake news,* estafas online y donde nada es lo que parece. Por todo esto, necesitamos desarrollar herramientas que nos permitan sacar información en claro dentro de la inmensa red que constituye internet.
+
+A pesar de parecer una tarea compleja y abrumadora, veremos que hay algoritmos y técnicas que se pueden aplicar de forma sencilla y que nos aportarán información muy valiosa.
+
+Así que, sin más dilación, podemos ponernos manos a la obra.

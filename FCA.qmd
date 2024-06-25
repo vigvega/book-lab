@@ -1,0 +1,154 @@
+# Análisis Formal de Contextos
+
+El siguiente método que vamos a utilizar es FCA, que nos ayuda a describir relaciones entre grupos de objetos y atributos. Para este conjunto de datos ya hemos visto algunas relaciones interesantes al trabajar con reglas de asociación, por lo que esperamos extraer un conocimiento similar con esta técnica.
+
+```{r, message=FALSE, warning=FALSE}
+library(fcaR)
+library(dplyr)
+library(hasseDiagram)
+```
+
+## Preprocesamiento
+
+Vamos a aprovechar que nuestro conjunto de datos tiene bastantes atributos binarios para construir el concepto formal. Por tanto, vamos a transformar aquellas columnas que nos lo permitan a binarias si no lo son y vamos a eliminar el resto.
+
+```{r}
+insta_fca <- read.csv("train.csv")
+
+# Elimino columnas
+insta_fca$nums.length.fullname <- NULL
+insta_fca$nums.length.username <- NULL
+
+# Discretizo
+insta_fca$description.length <- cut(insta_fca$description.length, 
+                      breaks = c(-1, 0, 22, 100, Inf), 
+                      labels = c("None", "Short", "Medium", "Long"))
+insta_fca$fullname.words <- cut(insta_fca$fullname.words, 
+                      breaks = c(-1, 0, 4, 8, Inf), 
+                      labels = c("None", "Short", "Medium", "Long"))
+insta_fca$X.posts <- cut(insta_fca$X.posts, 
+                      breaks = c(-1, 0, 50, 200, Inf), 
+                      labels = c("None", "Few", "Regular", "Lots"))
+insta_fca$X.followers <- cut(insta_fca$X.followers, 
+                      breaks = c(-1, 0, 2000, 80000, Inf), 
+                      labels = c("None", "Few", "Regular", "Lots"))
+insta_fca$X.follows <- cut(insta_fca$X.follows, 
+                      breaks = c(-1, 0, 50, 500, Inf), 
+                      labels = c("None", "Few", "Regular", "Lots"))
+
+
+```
+
+```{r}
+# Convierto a binarias
+insta_fca <- insta_fca %>%
+  mutate(
+    none_description = if_else(description.length == "None", 1, 0),
+    short_description = if_else(description.length == "Short", 1, 0),
+    medium_description = if_else(description.length == "Medium", 1, 0),
+    long_description = if_else(description.length == "Long", 1, 0))
+
+insta_fca <- insta_fca %>%
+  mutate(
+    none_fullname.words = if_else(fullname.words == "None", 1, 0),
+    short_fullname.words = if_else(fullname.words == "Short", 1, 0),
+    medium_fullname.words = if_else(fullname.words == "Medium", 1, 0),
+    long_fullname.words = if_else(fullname.words == "Long", 1, 0))
+
+insta_fca <- insta_fca %>%
+  mutate(
+    none_posts = if_else(X.posts == "None", 1, 0),
+    few_posts = if_else(X.posts == "Few", 1, 0),
+    regular_posts = if_else(X.posts == "Regular", 1, 0),
+    lots_posts = if_else(X.posts == "Lots", 1, 0))
+
+insta_fca <- insta_fca %>%
+  mutate(
+    none_followers = if_else(X.followers == "None", 1, 0),
+    few_followers = if_else(X.followers == "Few", 1, 0),
+    regular_followers = if_else(X.followers == "Regular", 1, 0),
+    lots_followers = if_else(X.followers == "Lots", 1, 0))
+
+insta_fca <- insta_fca %>%
+  mutate(
+    none_follows = if_else(X.follows == "None", 1, 0),
+    few_follows = if_else(X.follows == "Few", 1, 0),
+    regular_follows = if_else(X.follows == "Regular", 1, 0),
+    lots_follows = if_else(X.follows == "Lots", 1, 0))
+
+# Elimino las columnas que ya no necesito
+insta_fca$description.length <- NULL
+insta_fca$fullname.words <- NULL
+insta_fca$X.posts <- NULL
+insta_fca$X.followers <- NULL
+insta_fca$X.follows <- NULL
+
+```
+
+## Contexto Formal
+
+```{r}
+# Creo el contexto formal
+fc <- FormalContext$new(insta_fca)
+```
+
+```{r}
+# Lo visualizo
+fc$plot()
+```
+
+```{r}
+# Conceptos
+fc$find_concepts()
+fc$concepts[1:3]
+```
+
+```{r}
+# Implicaciones
+fc$find_implications()
+fc$implications[1:5]
+```
+
+```{r}
+sizes <- fc$implications$size()
+colMeans(sizes)
+```
+
+## Un subretículo simple
+
+Dentro de todo el concepto formal, puede ser que nos interese filtrar o eliminar datos que no estén dentro de unos parámetros. Para ello, podemos por ejemplo filtrar por aquellos conceptos que tengan un soporte mayor al 50%.
+
+```{r}
+indices <- which(fc$concepts$support()>0.5)
+sublattice <- fc$concepts$sublattice(indices)
+
+sublattice$print()
+```
+
+```{r}
+# Lo visualizamos
+sublattice$plot()
+```
+
+## ¿Qué atributos tiene una cuenta falsa?
+
+Otra operación interesante que podemos realizar es la de crear distintos *sets* y obtener información a partir de ellos.
+
+```{r}
+# Defino un set con cuentas falsas
+Sfake <- Set$new(attributes = fc$attributes)
+Sfake$assign(fake = 1)
+Sfake
+```
+
+Con el método *extent* podemos obtener el conjunto de atributos que contienen las características del set que hemos especificado.
+
+```{r}
+fc$extent(Sfake)
+```
+
+También podemos obtener los atributos que tienen en común con *intent*.
+
+```{r, warning=FALSE}
+fc$intent(Sfake)
+```

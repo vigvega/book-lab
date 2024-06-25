@@ -1,0 +1,224 @@
+# Series Temporales
+
+La siguiente técnica a estudiar son las Series Temporales, que suele ser interesante para ver cómo avanzan temporalmente ciertos parámetros y tratar de realizar predicciones de cara al futuro.
+
+```{r, message=FALSE}
+# Librerias
+library(TTR)
+library(forecast)
+library(tseries)
+library(dplyr)
+```
+
+## Añadir valores temporales
+
+Como en nuestro conjunto de datos no tenemos ningún indicador de temporalidad, vamos a crear un caso ficticio:
+
+Supongamos que queremos ver la popularidad que ha ganado Instagram en el último año. Lo que haremos será asumir que la información que contiene nuestro dataset es sobre todas las cuentas que se han registrado en 2023.
+
+Vamos a tratar de estudiar, pues, cuántos usuarios se unieron cada mes, cuánta actividad han ido teniendo, etc.
+
+Para ello, voy a añadir tres columnas más al dataset:
+
+-   Fecha en la que se unieron a Instagram.
+
+-   Mes que ganaron más seguidores y su cantidad.
+
+Estos valores voy a generarlos aleatoriamente.
+
+### Fecha en la que se unieron a Instagram
+
+```{r, message=FALSE, warning=FALSE}
+data_ts <- read.csv("train.csv")
+attach(data_ts)
+```
+
+```{r}
+# Creo una secuencia de fechas desde enero de 2023 hasta diciembre de ese mismo año
+fechas <- seq.Date(as.Date("2023-01-01"), as.Date("2023-12-31"), by = "day")
+
+# Le doy a cada fila una fecha
+set.seed(12)
+data_ts <- data_ts %>%
+  mutate(creation.date = sample(fechas, nrow(data_ts), replace = TRUE))
+```
+
+```{r}
+# Compruebo que se ha insertado correctamente
+str(data_ts$creation.date)
+```
+
+Posteriormente, voy a crear una lista que contengan para cada mes el número de personas que se unieron.
+
+```{r}
+usuarios_por_meses <- data_ts %>%
+  group_by(Month = as.integer(format(creation.date, "%m"))) %>%
+  summarise(users_joined = n())
+
+usuarios_por_meses
+```
+
+### Fecha en que ganaron más seguidores y su cantidad
+
+En este caso, no me basta con asignarle una fecha aleatoria, pues debo de asegurarme de que este mes no sea anterior al de creación de la cuenta. Para ello, indico en sample que el primer valor válido es la fecha de creación.
+
+```{r}
+data_ts <- data_ts %>%
+  rowwise() %>%
+  mutate(date_max_followers = as.Date(sample(seq(creation.date, as.Date("2023-12-31"), by="day"), 1)))
+
+```
+
+```{r}
+data_ts <- data_ts %>%
+  rowwise() %>%
+  mutate(max_followers = sample(1:X.followers, 1))
+```
+
+También vamos a calcular la cantidad de seguidores total de cada mes. Esto será útil para estudiar la actividad mensual de los usuarios en general, pues que el número de nuevos seguidores sea alta es indicador de que hay muchos usuarios interactuando con otras cuentas.
+
+```{r}
+max_usuarios_por_meses <- data_ts %>%
+  group_by(Month = as.integer(format(date_max_followers, "%m"))) %>%
+  summarise(max_followers = sum(max_followers))
+
+max_usuarios_por_meses
+```
+
+## Cantidad de usuarios registrados
+
+Lo primero que podemos observar es el número de usuarios que se registraron mensualmente.
+
+```{r}
+ts1<-  ts(usuarios_por_meses[2], frequency=12, start=c(2023, 1))
+ts1
+```
+
+```{r}
+plot.ts(ts1)
+```
+
+Es fácil observar que no hay estacionalidad en esta serie. En el caso de que no se apreciase a simple vista, podríamos utilizar el test ADF.
+
+```{r, warning=FALSE}
+adf_test <- adf.test(ts1)
+if (adf_test$p.value < 0.05) {
+  cat("The time series is stationary.\n")
+  print(adf_test)
+} else {
+  cat("The time series is not stationary. You may need to difference it.\n")
+}
+```
+
+```{r}
+aggregate(ts1)
+```
+
+### Descomponiendo la serie
+
+Para ver si existe alguna tendencia en la serie, vamos a proceder a descomponerla.
+
+```{r}
+# Aplicando SMA
+ts1.sma2 <- SMA(ts1, n = 2)
+ts1.sma5 <- SMA(ts1, n = 5)
+ts1.sma9 <- SMA(ts1, n = 9)
+
+# Plot de las series
+par(mfrow = c(2, 2))
+plot.ts(ts1)
+plot.ts(ts1.sma2)
+plot.ts(ts1.sma5)
+plot.ts(ts1.sma9)
+```
+
+Con esto hemos conseguido apreciar cierta tendencia ascendente en la serie, principalmente a partir del SMA5.
+
+### Modelo HoltWinters
+
+```{r}
+holt <- HoltWinters(ts1, beta = FALSE, gamma = FALSE)
+holt
+```
+
+De estos resultados, nos interesa comprender el valor de alpha que, al ser de 0.71, nos dice que las observaciones pasadas no tienen una influencia excesivamente significativa en las predicciones.
+
+```{r}
+plot(holt)
+```
+
+Con el uso de la función *forecast* podemos ver las predicciones para los próximos años que obtenemos con este modelo.
+
+```{r}
+plot(forecast(holt))
+```
+
+```{r}
+# Suma residual de cuadrados
+holt$SSE
+```
+
+### Modelo ARIMA
+
+También podemos tratar de crear un modelo con ARIMA para predecir cómo avanzarán estos valores durante el próximo año.
+
+```{r}
+# Creo el modelo
+model <- arima(ts1, order = c(0, 0, 20))
+summary(model)
+```
+
+```{r}
+# Hago las predicciones para los próximos 12 meses
+forecast_usuarios_registrados <- forecast::forecast(model, level=c(95), h=12)
+plot(forecast_usuarios_registrados)
+```
+
+```{r}
+# Media por meses de usuarios que se estima que se registrarán
+forecast_usuarios_registrados$mean
+```
+
+```{r}
+# Residuos
+forecast_usuarios_registrados$residuals
+```
+
+```{r}
+tsdisplay(residuals(model), main = "Seasonal Model Residuals")
+```
+
+## Actividad mensual
+
+También puede ser interesante estudiar cómo han ido interactuando estos usuarios durante los meses. Para ello, podemos ver que si ha habido mucho aumento en los números de seguidores, la actividad ha sido mayor.
+
+```{r}
+ts2 <-  ts(max_usuarios_por_meses[2], frequency=12, start=c(2023, 1))
+ts2
+```
+
+```{r}
+plot.ts(ts2)
+```
+
+### Modelo predictivo
+
+Ya hemos visto que el modelo ARIMA nos proporciona mejores resultados, por lo que será el que utilicemos para esta serie.
+
+```{r}
+# Creo el modelo
+model2 <- arima(ts2, order = c(0, 0, 20))
+summary(model2)
+```
+
+```{r}
+# Hago las predicciones para los próximos 12 meses
+forecast_actividad <- forecast::forecast(model2, level=c(95), h=12)
+plot(forecast_actividad)
+```
+
+Según estas predicciones, la actividad no será tan elevada durante el año 2024, aunque sufrirá menos desviaciones que en el año anterior.
+
+## Conclusiones
+
+Como consideraciones finales, es importante tener en cuenta que series temporales es más adecuado para conjuntos de datos con otras características. Sin embargo, esta exploración nos ha permitido comprobar su enorme utilidad y la amplitud de información que se puede extraer con ellas.

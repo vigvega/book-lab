@@ -3,12 +3,21 @@ project:
   output-dir: docs
 
 website:
-  title: "insta-book"
+  title: "Detección de cuentas falsas"
   navbar:
     left:
       - href: index.qmd
-        text: Home
-      - about.qmd
+        text: Intro
+      - href: analisis_exploratorio.qmd
+        text: Análisis Exploratorio
+      - visualizacion.qmd
+      - reglas_asociacion.qmd
+      - href: FCA.qmd
+        text: FCA
+      - regresion.qmd
+      - series_temporales.qmd
+      - summary.qmd
+      - references.qmd
 
 format:
   html:

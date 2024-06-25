@@ -1,0 +1,108 @@
+# Análisis exploratorio de datos
+
+El análisis exploratorio de datos es un paso fundamental a la hora de trabajar con cualquier conjunto de datos, pues nos permite comprender el tipo de información que queremos extraer de ellos y nos da una visión general de las herramientas que nos serán convenientes utilizar en los pasos posteriores.
+
+Para empezar, tenemos dos ficheros csv, que corresponden al *training set* y *testing set*, respectivamente. Para este paso comenzaremos a utilizar el primero, pues simplemente queremos observar de forma general su contenido.
+
+```{r, warning=FALSE, message=FALSE}
+# Librerías
+library(magrittr)
+library(dplyr)
+library(Amelia)
+```
+
+## Conociendo los datos
+
+```{r}
+data <- read.csv("train.csv")
+head(data)
+```
+
+El dataset está compuesto por 12 columnas, detallando información como si la cuenta es privada, si tiene foto de perfil y si dicha cuenta es falsa.
+
+```{r}
+# Tamaño del dataset
+dim(data)
+```
+
+```{r}
+str(data)
+```
+
+Todos los datos son de algún tipo numérico, pero será interesante pasar algunas de estas columnas a factores (especialmente aquellas que toman una serie de valores fijos).
+
+```{r}
+# Convertimos en factor
+data$profile.pic <- data$profile.pic %>% as.factor()
+data$external.URL <- data$external.URL %>% as.factor()
+data$private <- data$private %>% as.factor()
+data$fake <- data$fake %>% as.factor()
+```
+
+Veamos un resumen estadístico de las variables.
+
+```{r}
+summary(data)
+```
+
+También es importante saber si hay información faltante en el dataset, pues habría que decidir si eliminar esas filas o buscar alguna alternativa. Para ello, vamos a visualizar cuantas celdas hay a null.
+
+```{r}
+# Función de libreria Amelia
+missmap(data)
+```
+
+Por suerte, no tenemos que gestionar los valores nulos, pues no existe ninguno.
+
+```{r}
+# Número de cuentas falsas
+sum(data$fake==1)
+```
+
+## ¿Qué características tiene una cuenta falsa?
+
+Intuitivamente, es razonable pensar que la mayoría de cuentas falsas serán aquellas con un número muy bajo de seguidores. Veamos si esto es cierto.
+
+```{r}
+# Cuentas falsas con menos seguidores que la media
+fake_followers <- data %>% 
+  filter(data$fake==1 & data$X.followers<mean(data$X.followers))
+
+dim(fake_followers)[1]
+```
+
+Esto ya nos da algunas ideas interesantes, pues hemos comprobado que TODAS las cuentas falsas tienen un número de seguidores inferior a la media.
+
+Otra característica propia de las cuentas falsas es que tengan poca o ninguna información, por lo que es probable que la mayoría no tengan foto de perfil o descripción.
+
+```{r}
+# Cuentas falsas sin foto de perfil ó descripción
+length(which(data$fake==1 & (data$profile.pic==0 | data$description.length==0)))
+```
+
+```{r, warning=FALSE}
+# Cantidad de cuentas que son falsas en función de si son públicas o privadas
+data %>%
+  group_by(fake, private) %>%
+  summarise(cantidad=n())
+```
+
+Vemos que dentro de las cuentas que son privadas o no, hay una distribución uniforme de las cuentas falsas. Por tanto, esta columna es probable que no nos aporte mucha información en futuros modelos.
+
+```{r}
+# Cantidad de cuentas que son falsas en función de si tienen foto de perfil o no
+data %>%
+  group_by(fake, profile.pic) %>%
+  summarise(cantidad=n())
+```
+
+La gran mayoría de cuentas reales poseen foto de perfil.
+
+```{r}
+# Cuentas falsas con URL
+length(which(data$external.URL==1 & data$fake==1))
+```
+
+Algunas conclusiones que obtenemos es que todas las cuentas falsas tienen pocos seguidores, no tienen URL y tampoco suelen tener foto de perfil ni descripción. Esto nos ayudará a lo largo del proyecto a focalizar nuestra atención en los atributos que más información nos dan sobre cada cuenta.
+
+Para profundizar más en todo esto, será interesante estudiar estos datos de forma visual, que es lo que se hará en el siguiente capítulo.

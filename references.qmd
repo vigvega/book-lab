@@ -1,0 +1,15 @@
+# References {.unnumbered}
+
+[Book de la asignatura](https://amorabonilla.quarto.pub/-conocimiento-desde-los-datos/)
+
+[Proyecto Kaggle de Visualización](https://www.kaggle.com/code/philippsp/exploratory-analysis-instacart)
+
+[Proyecto de Regresión - RPubs](https://rpubs.com/joser/RegresionSimple)
+
+[fcaR: Formal Concept Analysis with R](https://malaga-fca.netlify.app/resources/demos/fcar/)
+
+[Forecasting: Principles and Practice (2nd ed)](https://otexts.com/fpp2/)
+
+[Información sobre los datos](https://www.kaggle.com/code/durgeshrao9993/fake-instagram-profile-detection-model/notebook)
+
+[Información sobre Quarto Books](https://quarto.org/docs/books/)

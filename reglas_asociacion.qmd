@@ -1,0 +1,202 @@
+# Reglas de asociación
+
+En este capítulo vamos a utilizar una técnica muy común en minería de datos que nos permitirá encontrar relaciones dentro del conjunto de datos que disponemos. Para ello, extraeremos un conjunto de reglas con el algoritmo apriori, proporcionado en la librería *arules.* Como en los capítulos anteriores ya hemos extraído cierta información, podemos presuponer que obtendremos reglas similares a la siguiente:
+
+`{profile.pic==0, description.length==short} => {fake}`
+
+Sin embargo, puede haber ciertas relaciones que hayamos pasado por alto. Así que con la ayuda de arules, encontraremos todas las que sean relevantes.
+
+```{r, message=FALSE, warning=FALSE}
+# Librerías
+library(dplyr)
+library(ggplot2)
+library(arules)
+library(arulesViz)
+library(RColorBrewer) # Para el color
+
+# Datos
+insta_data <- read.csv("train.csv")
+```
+
+## Preprocesamiento
+
+Antes de poder trabajar con el conjunto de datos, deberemos transformar en factores sus atributos. Para ello, he estudiado los valores mínimos y máximos, así como la media, de cada atributo, de modo que pudiese obtener una división realista de cada grupo.
+
+```{r}
+# Elimino columnas
+insta_data$nums.length.fullname <- NULL
+insta_data$nums.length.username <- NULL
+
+# Convertimos en factor
+insta_data$name..username <- insta_data$name..username %>% as.factor()
+insta_data$profile.pic <- insta_data$profile.pic %>% as.factor()
+insta_data$external.URL <- insta_data$external.URL %>% as.factor()
+insta_data$private <- insta_data$private %>% as.factor()
+insta_data$fake <- insta_data$fake %>% as.factor()
+
+# Categorizamos
+insta_data$description.length <- cut(insta_data$description.length, 
+                      breaks = c(-1, 0, 22, 100, Inf), 
+                      labels = c("None", "Short", "Medium", "Large"))
+insta_data$fullname.words <- cut(insta_data$fullname.words, 
+                      breaks = c(-1, 0, 4, 8, Inf), 
+                      labels = c("None", "Short", "Medium", "Long"))
+insta_data$X.posts <- cut(insta_data$X.posts, 
+                      breaks = c(-1, 0, 50, 200, Inf), 
+                      labels = c("None", "Few", "Regular", "Lots"))
+
+
+insta_data$X.followers <- discretize(insta_data$X.followers, method = "frequency", breaks = 3, labels=c("Few", "Regular", "Lots"))
+insta_data$X.follows <- discretize(insta_data$X.follows, method = "frequency", breaks = 3, labels=c("Few", "Regular", "Lots"))
+```
+
+Una vez tenemos los datos preparados, veamos qué frecuencia absoluta tienen sus items.
+
+```{r}
+itemFrequencyPlot(as(insta_data, "transactions"), type = "absolute", col = brewer.pal(8, 'Pastel2'))
+```
+
+## Aplicando algoritmo Apriori
+
+```{r}
+rules <- apriori(insta_data, parameter = list(support=0.1, conf=0.9))
+```
+
+```{r}
+print(paste("Porcentaje de reglas redundantes: ", mean(is.redundant(rules)*100)))
+print(paste("Porcentaje de reglas significativas: ", mean(is.significant(rules, transactions.obj, method = "fisher")*100)))
+
+```
+
+```{r}
+# Elimino reglas redundantes
+rules <- rules[!is.redundant(rules)]
+# Elimino reglas poco significativas
+rules <- rules[is.significant(rules, transactions.obj, method = "fisher")]
+# Ordeno por lift
+rules <- sort(rules, by = "lift")
+```
+
+Una vez creado el conjunto de reglas, podemos ver la información más relevante de ellas con el método *summary.*
+
+Esta función nos dice que tenemos 197 reglas, con una media de soporte del 21% y un 96% de confianza.
+
+```{r}
+summary(rules)
+```
+
+```{r}
+# Observamos las cinco primeras reglas con mayor lift
+inspect(rules[1:5])
+```
+
+```{r, warning=FALSE, message=FALSE}
+# Visualizamos las reglas
+plot(rules)
+```
+
+## Filtrando reglas
+
+### ¿Qué tienen en común las cuentas populares?
+
+Vamos a ver aquellas reglas del tipo "Si una cuenta tiene muchos seguidores, entonces..."
+
+```{r}
+rules_pop <- subset(rules, subset = lhs %in% "X.followers=Lots")
+summary(rules_pop)
+```
+
+```{r}
+# Ordeno por soporte
+rules_pop <- sort(rules_pop, by="support")
+
+# Visualizo las primeras
+inspect(head(rules_pop))
+```
+
+También podemos observar aquellas reglas que solo tienen este atributo en la parte derecha, es decir, "Si una cuenta es ..., entonces tiene muchos seguidores".
+
+```{r}
+rules_pop2 <- subset(rules, subset = rhs %oin% "X.followers=Lots")
+inspect(rules_pop2)
+```
+
+Una conclusión interesante que obtenemos de estas reglas, es que las cuentas con muchos seguidores tienden a ser reales, además de que normalmente no son privadas y suelen hacer publicaciones con regularidad.
+
+### ¿Suelen las cuentas públicas aportar mucha información o tener mucha actividad?
+
+```{r}
+rules_priv <- subset(rules, subset = (lhs %ain% "private=0"))
+inspect(head(sort(rules_priv, by="support")))
+```
+
+### ¿Qué caracteriza a una cuenta falsa?
+
+Primero voy a crear un subconjunto tan solo con las cuentas falsas.
+
+```{r}
+rules_fake <- subset(rules, subset = (lhs %ain% "fake=1" | rhs %ain% "fake=1"))
+inspect(head(sort(rules_fake, by="support")))
+```
+
+Posteriormente, voy a buscar algunos atributos para ver qué valores tienden a tener dentro de este grupo.
+
+```{r}
+# Reglas que indican que hay cuentas falsas con pocos seguidores
+subset(rules_fake, subset = items %in% "X.followers=Few")
+# Reglas que indican que hay cuentas falsas con muchos seguidores
+subset(rules_fake, subset = items %in% c("X.followers=Regular", "X.followers=Lots"))
+```
+
+También observamos que hay bastantes reglas para las cuentas falsas sin descripción.
+
+```{r}
+inspect(subset(rules_fake, subset = items %in% "description.length=None")[1:5])
+```
+
+Como vimos en el análisis exploratorio de datos, si una cuenta no tiene URL externa, entonces es falsa.
+
+```{r}
+inspect(subset(rules_fake, subset = items %in% "external.URL=0"))
+```
+
+### ¿Y a una cuenta real?
+
+```{r}
+rules_real <- subset(rules, subset = (lhs %ain% "fake=0" | rhs %ain% "fake=0"))
+inspect(head(sort(rules_real, by="support")))
+```
+
+```{r}
+inspect(subset(rules_real, subset = items %in% "external.URL=1"))
+```
+
+```{r}
+inspect(subset(rules_real, subset = items %in% c("X.followers=Regular", "X.followers=Lots")))
+```
+
+Además de las reglas que son opuestas a las obtenidas para las cuentas falsas, observamos que es usual para las cuentas reales que tengan alguna descripción, foto de perfil y algunos posts.
+
+## Trabajando con itemsets
+
+Otra opción interesante que nos da *arules* es encontrar un conjunto de items, en lugar de reglas. Probemos a obtener itemsets con al menos dos items y un 1% de soporte.
+
+```{r}
+itemsets <- apriori(data = insta_data, parameter = list(support = 0.01, minlen = 2, target = "frequent itemset"))
+itemsets <- sort(itemsets, by="support")
+```
+
+Observamos los primeros items.
+
+```{r}
+inspect(itemsets[1:10])
+```
+
+Y visualizamos los más frecuentes.
+
+```{r}
+as(itemsets[1:10], Class = "data.frame") %>%
+  ggplot(aes(x = items, y = support)) +
+  geom_col(fill = "brown3") +
+  coord_flip()
+```

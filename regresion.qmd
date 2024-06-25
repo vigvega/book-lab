@@ -1,0 +1,151 @@
+# Regresión
+
+La siguiente técnica que vamos a probar sobre nuestro conjunto de datos es la de regresión. Consiste en estudiar la relación entre una variable dependiente y una o varias variables explicativas, de modo que después se puedan hacer predicciones en base a estos resultados.
+
+```{r, message=FALSE, warning=FALSE}
+library(dplyr)
+```
+
+```{r}
+data_reg <- read.csv("train.csv")
+attach(data_reg)
+```
+
+## Buscando relaciones
+
+Para empezar, vamos a intentar buscar relaciones entre variables, para ver qué atributos podemos añadir al modelo. Para ello, vamos a quitar en principio las variables binarias para simplificar las vistas.
+
+```{r}
+data_reg2 <- data_reg
+
+data_reg2$name..username <- NULL
+data_reg2$profile.pic <- NULL
+data_reg2$external.URL <- NULL
+data_reg2$private <- NULL
+
+```
+
+```{r}
+# matriz de diagramas de dispersión
+pairs(data_reg2)
+```
+
+En este diagrama podemos ver ciertas relaciones. Por ejemplo, se observa cierta linealidad entre *nums.length.username* y *nums.length.fullname*. Sin embargo, no se aprecian relaciones completamente concluyentes para ningún atributo. Esto es posible que se deba a que haya muchos *outliers* o que simplemente no tenga relación entre si, lo cual comprobaremos una vez hayamos construido los modelos.
+
+```{r}
+# matriz de correlación
+cor(data_reg2)
+```
+
+Aquí vemos la matriz de correlación, que indica cómo de relacionado está cada atributo con todos los demás. Los resultados tampoco son demasiado buenos, pues, aunque hay atributos que muestran cierta relación, no son de manera demasiado significativa en general.
+
+## Un primer modelo simple
+
+Para empezar, vamos a crear un modelo para poder predecir la relación entre el número de seguidores y seguidos.
+
+```{r}
+# Generamos el modelo
+model <- lm( formula = X.followers ~ X.follows ,  data = data_reg)
+summary(model)
+```
+
+Lo primero que llama la atención es un *p-value* excesivamente alto, además de que se nos indica que no hay relación entre el número de seguidores y seguidos.
+
+```{r}
+# Lo visualizamos
+plot(X.follows, X.followers)
+abline(model)
+```
+
+Como podemos ver, los puntos con una gran cantidad de seguidores distorsionan los resultados. Vamos a eliminarlos, pues.
+
+```{r}
+data2 <- data_reg %>%
+  filter(X.followers<4000)
+
+model2 <- lm( formula = X.followers ~ X.follows ,  data = data2)
+summary(model2)
+```
+
+```{r}
+# Lo visualizamos
+plot(data2$X.follows, data2$X.followers)
+abline(model2)
+```
+
+Estos resultados parecen más fiables. Para asegurarnos de ellos, vamos a estudiar algunos valores del modelo.
+
+```{r}
+plot(model2)
+```
+
+Para la primera y la tercera gráfica, donde vemos *Residuals vs. Fitted y Scale-Location*, respectivamente, vemos que se distribuyen los puntos de forma algo aleatoria, lo cual es un signo positivo de que nuestro modelo hace bien su trabajo.
+
+La segunda, *Normal Q-Q,* parece desviarse de lo esperado para los últimos valores.
+
+Por último, en *Residuals vs. Leverage*, se nos informa de los puntos que tienen mayor influencia en el modelo. Además, se ve que sigue habiendo puntos que no son muestras fiables para el modelo, como el 89 y el 104.
+
+## Un modelo genérico
+
+El siguiente modelo que voy a crear, va a ser entre el atributo *fake* y todos los demás, pues me interesa ver cuáles tienen más influencia en el modelo.
+
+```{r}
+model3 <- lm( formula = fake ~ .,  data = data_reg ) 
+summary(model3)
+```
+
+Vemos que las que más información aportan son *profile.pic, nums.length.username* y *description.length,* seguidas de *name..username* y *external.URL.*
+
+Vamos a crear un segundo modelo solo con estas variables.
+
+```{r}
+model4 <- lm( formula = fake ~ profile.pic + nums.length.username + description.length + name..username + external.URL,  data = data_reg) 
+summary(model4)
+```
+
+Vemos que tiene un p-value bajo, pero el valor de *R-square* parece no ser demasiado alto. De todos modos, vamos a visualizar más información de este modelo para determinar su utilidad.
+
+```{r}
+plot(model4)
+```
+
+Para la primera y la tercera gráfica, no encontramos buenos resultados, pues lo ideal sería que los residuos se distribuyesen de forma aleatoria y en este caso encontramos una clara linealidad en ellos.
+
+La segunda parece comportarse de forma esperada, pues vemos que los errores se distribuyen de forma normal.
+
+Por último, en *Residuals vs. Leverage*, se observa que hay algunos con el 415 que podrían ser eliminados, pues se desvía demasiado de los demás puntos.
+
+## Mejorando el modelo
+
+```{r}
+model4_upd <- update(model4, fake ~ . + I(description.length^2) + I(nums.length.username^2))
+summary(model4_upd)
+```
+
+Hemos conseguido subir ligeramente el valor de *R-square*, lo que significa que este modelo es algo mejor que el original.
+
+## Predicciones
+
+Para finalizar, vamos a tomar el *testing set* para intentar predecir si una cuenta es falsa o no en función del último modelo que hemos obtenido.
+
+```{r}
+test <- read.csv("test.csv")
+
+# Predicción
+probabilidades <- predict(model4_upd, test)
+
+# Las probabilidades las transformo a binarias
+predicciones_binarias <- ifelse(probabilidades > 0.5, 1, 0)
+
+# Comparamos con la predicción el valor real
+resultados <- data.frame(prediccion=predicciones_binarias, real=test$fake)
+head(resultados, 10)
+```
+
+```{r}
+# Vemos cuántas de las predicciones coinciden con lo esperado
+porcentaje_aciertos <- sum(predicciones_binarias==test$fake)/length(test$fake)*100
+porcentaje_aciertos
+```
+
+Como podemos ver, hemos obtenido un modelo que acierta casi el 90% de sus predicciones. De estos resultados concluimos que en este apartado hemos aprendido un método muy sencillo pero útil con el que se puede conseguir, de forma casi instantánea, una respuesta sobre si una cuenta de Instagram es falsa o no.
